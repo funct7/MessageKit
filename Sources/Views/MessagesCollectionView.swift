@@ -41,6 +41,8 @@ open class MessagesCollectionView: UICollectionView {
         guard lastSection >= 0, numberOfItems(inSection: lastSection) > 0 else { return nil }
         return IndexPath(item: numberOfItems(inSection: lastSection) - 1, section: lastSection)
     }
+    
+    private var tapGesture: UITapGestureRecognizer!
 
     // MARK: - Initializers
 
@@ -70,8 +72,9 @@ open class MessagesCollectionView: UICollectionView {
     }
     
     private func setupGestureRecognizers() {
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTapGesture(_:)))
+        tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTapGesture(_:)))
         tapGesture.delaysTouchesBegan = true
+        tapGesture.delegate = self
         addGestureRecognizer(tapGesture)
     }
     
@@ -156,4 +159,19 @@ open class MessagesCollectionView: UICollectionView {
         return viewType
     }
 
+}
+
+extension MessagesCollectionView : UIGestureRecognizerDelegate {
+    
+    open override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        guard gestureRecognizer === tapGesture else {
+            return super.gestureRecognizerShouldBegin(gestureRecognizer)
+        }
+        
+        let loc = gestureRecognizer.location(in: self)
+        guard let indexPath = indexPathForItem(at: loc) else { return false }
+        
+        return cellForItem(at: indexPath) is MessageContentCell
+    }
+    
 }
